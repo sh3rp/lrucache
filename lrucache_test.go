@@ -24,4 +24,5 @@ func TestBasicStale(t *testing.T) {
 	cache.Put(3, 3)
 	num = cache.Get(3)
 	assert.Equal(t, num, 3)
+	assert.Nil(t, cache.Get(2))
 }

@@ -43,10 +43,8 @@ func (cache *LRUCache) Put(key interface{}, value interface{}) {
 	} else {
 		if cache.nodes[key] != nil {
 			// move the node up to head if it exists
-			updatedNode := cache.nodes[key]
-			updatedNode.next = cache.head
-			cache.head.prev = updatedNode
-			cache.nodes[key] = updatedNode
+			cache.setNewHead(cache.nodes[key])
+			cache.nodes[key].value = value
 		} else {
 			// generate a new node
 			newNode := &node{
@@ -67,26 +65,35 @@ func (cache *LRUCache) Put(key interface{}, value interface{}) {
 
 func (cache *LRUCache) Get(key interface{}) interface{} {
 	if _, v := cache.nodes[key]; v {
-		// first make the node.next = node.prev
-		// next capture oldHead pointer
-		// next make cache.head = node
-		// next make cache.head.next = oldHead
-		// next make cache.head.prev = nil
-		prev := cache.nodes[key].prev
-		next := cache.nodes[key].next
-		if prev != nil && next != nil {
-			next.prev = prev
-		}
-		if next != nil && prev != nil {
-			prev.next = next
-		}
-		oldHead := cache.head
-		cache.head = cache.nodes[key]
-		cache.head.next = oldHead
-		cache.head.prev = nil
+		cache.setNewHead(cache.nodes[key])
 		return cache.nodes[key].value
 	} else {
-		fmt.Println("shoes")
 		return nil
+	}
+}
+
+func (cache *LRUCache) setNewHead(node *node) {
+	if node.prev != nil {
+		prev := node.prev
+		prev.next = nil
+		node.prev = nil
+		node.next = cache.head
+		cache.head.prev = node
+		if prev.next == nil {
+			cache.tail = prev
+		}
+	}
+	if node.next != nil {
+		next := node.next
+		next.prev = node.prev
+	}
+}
+
+func (cache *LRUCache) debug() {
+	head := cache.head
+
+	for head != nil {
+		fmt.Printf("%v\n", head)
+		head = head.next
 	}
 }
